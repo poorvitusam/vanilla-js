@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <meta name="description" content="">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+        <script >
+            class EventEmitter {
+                constructor() {
+                    this.events = {};
+                }
+
+                on(eventName, callback) {
+                    if(!this.events[eventName]) {
+                        this.events[eventName] = [];
+                    }
+
+                    this.events[eventName].push(callback);
+                }
+
+                once(eventName, callback) {
+                    const remove = (...args) => {
+                        callback.apply(this, args);
+                        this.off(eventName, remove);
+                    }
+                    this.on(eventName, remove);
+                }
+
+                off(eventName, callback) {
+                    if(!this.events[eventName] || this.events[eventName].length === 0) {
+                        return;
+                    }
+                    const idx = this.events[eventName].indexOf(callback);
+                    this.events[eventName].splice(idx, 1);
+                }
+
+                emit(eventName, ...args) {
+                    if(this.events[eventName] && this.events[eventName].length >= 0) {
+                        [...this.events[eventName]].forEach(fn =>
+                            fn.apply(this, args));
+                    }
+                }
+            }
+
+            var eventEmitter = new EventEmitter();
+
+            function responseToEvent(msg) {
+                console.log(msg);
+            }
+
+            /*
+                on: enable a callback listener
+                emit: trigger event with some data (args for the listener), all registered listners sould be invoked
+                once: enable a callback listener, disable after one invokation
+                off: disable a specific listener
+            */
+            eventEmitter.on('pramp', responseToEvent);
+            eventEmitter.once('pramp', (msg) => console.log(msg + ' just once!'));
+            eventEmitter.once('pramp', () => console.log('pramp'))
+            eventEmitter.emit('pramp', '1st');
+            eventEmitter.emit('pramp', '2nd');
+            eventEmitter.off('pramp', responseToEvent);
+            eventEmitter.emit('pramp', '3rd');
+            eventEmitter.emit('pramp', '1st');
+        </script>
+    </body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Infinite Scroll</title>
+    
+    <style>
+        .image {
+            height: 200px;
+        }
+
+        ul {
+            list-style: none;
+        }
+        /* The Loading Animation */
+        .loading{
+            width: 150px;
+            height: 70px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ball{
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: black;
+            margin: 0 10px;
+        }
+        .first{
+            animation: slide 2s  ease-in-out infinite ;
+            animation-delay: .1s;
+        }
+        .second{
+            animation: slide 2s ease-in-out infinite;
+            animation-delay: .5s;
+        }
+        .third{
+            animation: slide 2s ease-in-out infinite;
+            animation-delay: 1s;
+        }
+        @keyframes slide{
+            from{
+                transform: translateY(-30px);
+            }
+            to{
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <ul class="list" id="image-container">
+
+     </ul>
+     <div class="loading">
+        <div class="ball first"></div>
+        <div class="ball second"></div>
+        <div class="ball third"></div>
+    </div>
+</div>
+<script>
+    // window.addEventListener("scroll", handleScroll);
+    window.addEventListener('scroll',()=>{
+        const {scrollHeight,scrollTop,clientHeight} = document.documentElement;
+        if(scrollTop + clientHeight > scrollHeight - 5){
+            setTimeout(load,2000);
+        }
+    });
+
+    function isLastElementInViewport () {
+        const el = document.querySelector("ul").lastChild;
+        var rect = el.getBoundingClientRect();
+        console.log(el);
+
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /* or $(window).height() */
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
+        );
+    }
+    function handleScroll() {
+        if(isLastElementInViewport()) {
+            load();
+        }
+    }
+
+    let COUNTER = 1;
+    function getURL() {
+        const url = `https://www.thesportsdb.com/api/v1/json/1/searchteams.php?t=Arsenal`;
+        COUNTER++;
+        
+        return url;
+    }
+  
+    async function loadImage() {
+        try {
+        const url = getURL();
+        const response = await fetch(url);
+        const data = await response.json();
+        const image =  { 
+            id: data.teams[0].idTeam, 
+            url: data.teams[0].strStadiumThumb 
+        };
+
+        addImage(image);
+        } catch(e) {
+            console.log(e);
+        }
+    }
+
+    function addImage(image) {
+        console.log(image);
+        const list = document.querySelector("ul");
+        
+        const li = document.createElement("li");
+        const img = document.createElement("img");
+
+        img.src = image.url;
+        img.alt = image.id;
+        img.classList.add('image');
+
+        li.appendChild(img);
+        list.appendChild(li);
+    }
+    
+    function load() {
+        for(let i = 0; i < 5; i++) {
+            loadImage();
+        }
+    }
+    load();
+    
+    
+</script>
+</body>
+</html>
+
+
